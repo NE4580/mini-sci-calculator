@@ -4,6 +4,7 @@
 #include "token.hpp"
 #include <cstddef>
 #include <iostream>
+#include <optional>
 #include <vector>
 
 class Lexer
@@ -18,9 +19,9 @@ private:
 public:
 	explicit Lexer(const std::string& text); // forbit inplicit conversions
 	                                         // like Lexer t = "tf"
-	Token tokenize(const std::string& val, size_t beg);
-	Token readNumber();
-	Token readSymbols();
+	Token tokenizeSymbol(const char val, size_t beg);
+	std::optional<Token> readNumber();
+	std::optional<Token> readSymbol();
 	void createTokens();
 	void showTokens() const;
 };
