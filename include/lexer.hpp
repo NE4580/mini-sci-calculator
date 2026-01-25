@@ -19,9 +19,10 @@ private:
 public:
 	explicit Lexer(const std::string& text); // forbit inplicit conversions
 	                                         // like Lexer t = "tf"
-	Token tokenizeSymbol(const char val, size_t beg);
+	std::vector<Token>& getTokens();
 	std::optional<Token> readNumber();
 	std::optional<Token> readSymbol();
+	Token tokenizeSymbol(const char val, size_t beg);
 	void createTokens();
 	void showTokens() const;
 };

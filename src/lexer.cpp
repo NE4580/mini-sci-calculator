@@ -1,3 +1,4 @@
+// lexer
 #include "../include/lexer.hpp"
 #include <cctype>
 #include <cstddef>
@@ -19,24 +20,7 @@ bool Lexer::isSymbol() const
 	return false;
 }
 
-void Lexer::showTokens() const
-{
-	std::cout << "Total Tokens: " << tokens.size() << std::endl;
-	for (const auto& token : tokens)
-		if (token.type == TokenType::NUMBER)
-			std::cout << "[ TYPE: NUMBER ][FPN: " << token.isFloat << " ]\n"
-			          << "INDEX: " << token.position << "\nVALUE: " << token.value
-			          << '\n'
-			          << std::endl;
-		else
-			std::cout << "[ TYPE: SYMBOL ]"
-			          << ((token.type == TokenType::LPAREN ||
-			               token.type == TokenType::RPAREN)
-			                  ? "[ PARENTHESES ]"
-			                  : "[  OPERATOR   ]\n")
-			          << "INDEX: " << token.position << '\n'
-			          << std::endl;
-}
+std::vector<Token>& Lexer::getTokens() { return tokens; }
 
 std::optional<Token> Lexer::readNumber()
 {
@@ -157,4 +141,23 @@ void Lexer::createTokens()
 		// otherwise push the token
 		tokens.push_back(*token);
 	}
+}
+
+void Lexer::showTokens() const
+{
+	std::cout << "Total Tokens: " << tokens.size() << std::endl;
+	for (const auto& token : tokens)
+		if (token.type == TokenType::NUMBER)
+			std::cout << "[ TYPE: NUMBER ][FPN: " << token.isFloat << " ]\n"
+			          << "INDEX: " << token.position << "\nVALUE: " << token.value
+			          << '\n'
+			          << std::endl;
+		else
+			std::cout << "[ TYPE: SYMBOL ]"
+			          << ((token.type == TokenType::LPAREN ||
+			               token.type == TokenType::RPAREN)
+			                  ? "[ PARENTHESES ]"
+			                  : "[  OPERATOR   ]\n")
+			          << "INDEX: " << token.position << '\n'
+			          << std::endl;
 }
