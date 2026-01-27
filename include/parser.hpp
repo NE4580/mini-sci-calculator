@@ -5,20 +5,29 @@
 #include <optional>
 #include <vector>
 
+struct Value
+{
+	double number;
+	bool isFloat;
+};
+
 class Parser
 {
 private:
-	size_t current;
+	size_t tokenIndex;
 	std::vector<Token> tokens;
 
 public:
 	explicit Parser(const std::vector<Token>& t);
 	double evalute();
-	std::optional<Token> peek();
-	void advance();
 
 private:
-	double expression();
-	double term();
-	double factor();
+	std::optional<Token> peek();
+	std::optional<Token> currentToken() const;
+	void advance();
+	bool match(TokenType tt);
+	bool isClosingPren();
+	std::optional<Value> expression();
+	std::optional<Value> term();
+	std::optional<Value> factor();
 };
