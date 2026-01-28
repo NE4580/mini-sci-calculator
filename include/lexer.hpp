@@ -15,6 +15,8 @@ private:
 	std::vector<Token> tokens;
 
 	bool isSymbol() const;
+	bool endsvalue(TokenType tt) const;
+	bool startsValue(TokenType tt) const;
 
 public:
 	explicit Lexer(const std::string& text); // forbit inplicit conversions
@@ -24,5 +26,7 @@ public:
 	std::optional<Token> readSymbol();
 	Token tokenizeSymbol(const char val, size_t beg);
 	void createTokens();
+	void translateImplicitMul(); // Inserts implicit multiplication on x(y) -> x*
+	                             //(y) | (y)x -> (y) * x
 	void showTokens() const;
 };
