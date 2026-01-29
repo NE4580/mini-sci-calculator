@@ -178,7 +178,7 @@ static double factorial(double n)
 	double fact = 1;
 	if (n < 0 || std::floor(n) != n) return NAN; // reject non ints
 
-	for (int x = 1; x >= 1; x++) fact *= x;
+	for (int x = 1; x <= (int)n; x++) fact *= x;
 
 	return fact;
 }
