@@ -6,7 +6,7 @@ using namespace std;
 int main(int argc, char** argv)
 {
 
-	string input("2(1+1)5");
+	string input("3!!");
 	Lexer lexer(input);
 	lexer.createTokens();
 	lexer.translateImplicitMul();

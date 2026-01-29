@@ -10,6 +10,8 @@ enum class TokenType
 	MINUS,
 	MUL,
 	DIV,
+	PWR,
+	FACTORIAL,
 	LPAREN,
 	RPAREN,
 	ERROR,

@@ -2,7 +2,6 @@
 #include "../include/lexer.hpp"
 #include <cctype>
 #include <cstddef>
-#include <iostream>
 #include <optional>
 #include <string>
 
@@ -14,7 +13,8 @@ bool Lexer::isSymbol() const
 	{
 		if ((input[position] == '+') || (input[position] == '-') ||
 		    (input[position] == '/') || (input[position] == '*') ||
-		    (input[position] == '(') || (input[position] == ')'))
+		    (input[position] == '(') || (input[position] == ')') ||
+		    input[position] == '!' || input[position] == '^')
 			return true;
 	}
 
@@ -105,6 +105,12 @@ Token Lexer::tokenizeSymbol(const char val, size_t beg)
 	else if (val == '/')
 		tokenType = TokenType::DIV;
 
+	else if (val == '^')
+		tokenType = TokenType::PWR;
+
+	else if (val == '!')
+		tokenType = TokenType::FACTORIAL;
+
 	else if (val == '(')
 		tokenType = TokenType::LPAREN;
 
@@ -159,10 +165,10 @@ void Lexer::createTokens()
 void Lexer::translateImplicitMul()
 {
 	std::vector<Token> result;
+
 	for (size_t x = 0; x < tokens.size(); x++)
 	{
 		result.push_back(tokens[x]);
-
 		if (x + 1 < tokens.size())
 		{
 			if (endsvalue(tokens[x].type) && startsValue(tokens[x + 1].type))
@@ -180,14 +186,14 @@ void Lexer::showTokens() const
 	std::cout << "Total Tokens: " << tokens.size() << std::endl;
 	for (const auto& token : tokens)
 		if (token.type == TokenType::NUMBER)
-			std::cout << "[TYPE: NUMBER ][FPN: " << token.isFloat << " ]"
-			          << "[INDEX: " << token.position << " ] VALUE = " << token.value
-			          << std::endl;
+			std::cout << "[TYPE: NUMBER(" << token.value
+			          << ") | isRN: " << token.isFloat << " "
+			          << " | INDEX(" << token.position << ") ]" << std::endl;
 		else
-			std::cout << "[TYPE: SYMBOL"
+			std::cout << "[TYPE: SYMBOL("
 			          << ((token.type == TokenType::LPAREN ||
 			               token.type == TokenType::RPAREN)
-			                  ? " = PARENTHESES ]"
-			                  : " = OPERATOR   ]")
-			          << "[INDEX: " << token.position << " ]" << std::endl;
+			                  ? " PARENTHESES ) | "
+			                  : "  OPERATOR   ) | ")
+			          << "INDEX(" << token.position << ") ]" << std::endl;
 }

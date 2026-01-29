@@ -29,5 +29,8 @@ private:
 	bool isClosingPren();
 	std::optional<Value> expression();
 	std::optional<Value> term();
+	std::optional<Value> unary();
+	std::optional<Value> power();
+	std::optional<Value> postfix();
 	std::optional<Value> factor();
 };
