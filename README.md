@@ -18,3 +18,7 @@ basic calculater.
     d. treats ) like a value in factor and never consumes the used tokens
 
     e. multiple funtions control cursor expression(), term() and factor()
+commit explains updates from this point on.
+ ### Text
+ This is not a permanent readme file
+

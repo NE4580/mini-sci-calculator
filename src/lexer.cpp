@@ -3,6 +3,7 @@
 #include <cctype>
 #include <cstddef>
 #include <optional>
+#include <ostream>
 #include <string>
 
 Lexer::Lexer(const std::string& text) : input(text) { position = 0; }
@@ -17,7 +18,6 @@ bool Lexer::isSymbol() const
 		    input[position] == '!' || input[position] == '^')
 			return true;
 	}
-
 	return false;
 }
 
@@ -29,11 +29,66 @@ bool Lexer::endsvalue(TokenType tt) const
 
 bool Lexer::startsValue(TokenType tt) const
 {
-	if (tt == TokenType::NUMBER || tt == TokenType::LPAREN) return true;
+	if (tt == TokenType::NUMBER || tt == TokenType::LPAREN || isFunction(tt))
+		return true;
+	return false;
+}
+
+bool Lexer::isFunction(TokenType tt) const
+{
+	if (tt == TokenType::SIN || tt == TokenType::COS || tt == TokenType::TAN ||
+	    tt == TokenType::ASIN || tt == TokenType::ACOS || tt == TokenType::ATAN ||
+	    tt == TokenType::SQUREROOT || tt == TokenType::CUBEROOT)
+		return true;
 	return false;
 }
 
 std::vector<Token>& Lexer::getTokens() { return tokens; }
+
+std::optional<Token> Lexer::readFunction()
+{
+	size_t next   = (position + 1 < input.size()) ? position + 1 : 0;
+	size_t startI = position, insertIndex = 0;
+	std::string value = "";
+
+	if (!std::isalpha(input[position])) return std::nullopt;
+
+	while (position < input.size())
+	{
+		if (std::isalpha(input[position]))
+		{
+			value.insert(insertIndex++, 1,
+			             input[position]); // make a string of the whole number
+
+			position += (position < input.size()) ? 1 : 0;
+			next += (next < input.size()) ? 1 : 0;
+		}
+		else
+			break;
+	}
+
+	for (char& c : value)
+		c = std::tolower(c); // convert to lowercase to gaurd against character case
+
+	if (value == "sin")
+		return Token{TokenType::SIN, false, startI, 0.0F};
+	else if (value == "cos")
+		return Token{TokenType::COS, false, startI, 0.0F};
+	else if (value == "tan")
+		return Token{TokenType::TAN, false, startI, 0.0F};
+	else if (value == "asin")
+		return Token{TokenType::ASIN, false, startI, 0.0F};
+	else if (value == "acos")
+		return Token{TokenType::ACOS, false, startI, 0.0F};
+	else if (value == "atan")
+		return Token{TokenType::ATAN, false, startI, 0.0F};
+	else if (value == "sqrt")
+		return Token{TokenType::SQUREROOT, false, startI, 0.0F};
+	else if (value == "cbrt")
+		return Token{TokenType::CUBEROOT, false, startI, 0.0F};
+	else
+		return std::nullopt;
+}
 
 std::optional<Token> Lexer::readNumber()
 {
@@ -123,8 +178,9 @@ Token Lexer::tokenizeSymbol(const char val, size_t beg)
 	return Token{tokenType, false, beg, 0.0F};
 }
 
-void Lexer::createTokens()
+bool Lexer::createTokens()
 {
+	bool success = true;
 	while (position < input.size())
 	{
 		if (std::isspace(input[position])) // skip whitespace
@@ -134,32 +190,34 @@ void Lexer::createTokens()
 		}
 
 		std::optional<Token> token;
+
 		if (std::isdigit(input[position]) || input[position] == '.')
-		{
 			token = readNumber();
-		}
+
+		else if (std::isalpha(input[position]))
+			token = readFunction();
 
 		else
-		{
 			token = readSymbol();
-		}
 
 		if (!token.has_value()) // handle nullopt
 		{
 			std::cerr << "ERROR: Unexpected character at postion $" << position
 			          << ". " << std::endl;
+			success = false;
 			break;
 		}
 
 		if (token->type == TokenType::ERROR) // error tokens
 		{
 			std::cerr << "Lexer error at $" << token->position << ". " << std::endl;
+			success = false;
 			break;
 		}
-
 		// otherwise push the token
 		tokens.push_back(*token);
 	}
+	return success;
 }
 
 void Lexer::translateImplicitMul()
@@ -177,7 +235,6 @@ void Lexer::translateImplicitMul()
 			}
 		}
 	}
-
 	tokens = std::move(result);
 }
 
@@ -186,14 +243,21 @@ void Lexer::showTokens() const
 	std::cout << "Total Tokens: " << tokens.size() << std::endl;
 	for (const auto& token : tokens)
 		if (token.type == TokenType::NUMBER)
-			std::cout << "[TYPE: NUMBER(" << token.value
+			std::cout << "[TYPE: NUMBER (" << token.value
 			          << ") | isRN: " << token.isFloat << " "
-			          << " | INDEX(" << token.position << ") ]" << std::endl;
+			          << " | INDEX (" << token.position << ") ]" << std::endl;
+
+		else if (token.type == TokenType::SIN || token.type == TokenType::COS ||
+		         token.type == TokenType::TAN || token.type == TokenType::ASIN ||
+		         token.type == TokenType::ACOS || token.type == TokenType::ATAN)
+			std::cout << "[TYPE: FUNCTION | "
+			          << "INDEX (" << token.position << ") ]" << std::endl;
+
 		else
-			std::cout << "[TYPE: SYMBOL("
+			std::cout << "[TYPE: SYMBOL ("
 			          << ((token.type == TokenType::LPAREN ||
 			               token.type == TokenType::RPAREN)
 			                  ? " PARENTHESES ) | "
 			                  : "  OPERATOR   ) | ")
-			          << "INDEX(" << token.position << ") ]" << std::endl;
+			          << "INDEX (" << token.position << ") ]" << std::endl;
 }

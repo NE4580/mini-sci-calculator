@@ -2,18 +2,15 @@
 #include "../include/parser.hpp"
 #include <iostream>
 
-using namespace std;
 int main(int argc, char** argv)
 {
-
-	string input("3!!");
+	std::string input("(2)(2)");
 	Lexer lexer(input);
 	lexer.createTokens();
 	lexer.translateImplicitMul();
+	Parser parser(lexer.getTokens());
 
-	Parser p(lexer.getTokens());
-
-	cout << p.evalute();
+	std::cout << "ANS: " << parser.evalute() << std::endl;
 	// lexer.showTokens();
 	return 0;
 }

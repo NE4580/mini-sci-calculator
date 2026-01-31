@@ -2,6 +2,7 @@
 
 #pragma once
 #include "token.hpp"
+#include <cmath>
 #include <optional>
 #include <vector>
 
@@ -26,11 +27,15 @@ private:
 	std::optional<Token> currentToken() const;
 	void advance();
 	bool match(TokenType tt);
+	bool isOpeningPren();
 	bool isClosingPren();
+	bool isFunction(TokenType tt) const;
+	double toDegrees(double angle);
 	std::optional<Value> expression();
 	std::optional<Value> term();
 	std::optional<Value> unary();
 	std::optional<Value> power();
 	std::optional<Value> postfix();
 	std::optional<Value> factor();
+	std::optional<Value> function(TokenType tt, double x);
 };

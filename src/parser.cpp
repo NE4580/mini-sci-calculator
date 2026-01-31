@@ -51,14 +51,29 @@ void Parser::advance()
 	if (tokenIndex < tokens.size()) { tokenIndex += 1; }
 }
 
+bool Parser::isOpeningPren()
+{
+	if (!currentToken()) return false;
+	if (!(currentToken()->type == TokenType::LPAREN)) return false;
+	return true;
+}
+
+double Parser::toDegrees(double angle) { return angle * (180 / M_PIf); }
+
 bool Parser::isClosingPren()
 {
 	if (!currentToken()) return false;
-
 	if (!(currentToken()->type == TokenType::RPAREN)) return false;
-
-	advance();
 	return true;
+}
+
+bool Parser::isFunction(TokenType tt) const
+{
+	if (tt == TokenType::SIN || tt == TokenType::COS || tt == TokenType::TAN ||
+	    tt == TokenType::ASIN || tt == TokenType::ACOS || tt == TokenType::ATAN ||
+	    tt == TokenType::SQUREROOT || tt == TokenType::CUBEROOT)
+		return true;
+	return false;
 }
 
 bool Parser::match(TokenType tt)
@@ -204,6 +219,36 @@ std::optional<Value> Parser::postfix()
 	return factNum;
 }
 
+std::optional<Value> Parser::function(TokenType tt, double x)
+{
+	if (tt == TokenType::SIN)
+		return Value{toDegrees(std::sin(x)), true};
+
+	else if (tt == TokenType::COS)
+		return Value{toDegrees(std::cos(x)), true};
+
+	else if (tt == TokenType::TAN)
+		return Value{toDegrees(std::tan(x)), true};
+
+	else if (tt == TokenType::ASIN)
+		return Value{toDegrees(std::asin(x)), true};
+
+	else if (tt == TokenType::ACOS)
+		return Value{toDegrees(std::acos(x)), true};
+
+	else if (tt == TokenType::ATAN)
+		return Value{toDegrees(std::atan(x)), true};
+
+	else if (tt == TokenType::SQUREROOT)
+		return Value{std::sqrt(x), true};
+
+	else if (tt == TokenType::CUBEROOT)
+		return Value{std::cbrt(x), true};
+
+	else
+		return std::nullopt;
+}
+
 std::optional<Value> Parser::factor()
 {
 	std::optional<Value> number;
@@ -222,6 +267,20 @@ std::optional<Value> Parser::factor()
 		if (!isClosingPren()) // expecting ) at the end of call to
 		                      // expression()
 			return std::nullopt;
+		advance(); // consume )
+	}
+	else if (isFunction(currentToken()->type))
+	{
+		auto t = currentToken();
+		advance(); // consume function name
+		if (!isOpeningPren()) return std::nullopt;
+		advance(); // consume (
+
+		auto n = expression();
+		if (!isClosingPren()) return std::nullopt;
+		advance(); // consume )
+
+		number = function(t->type, n->number);
 	}
 	else
 		return std::nullopt;
