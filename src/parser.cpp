@@ -58,7 +58,8 @@ bool Parser::isOpeningPren()
 	return true;
 }
 
-double Parser::toDegrees(double angle) { return angle * (180 / M_PIf); }
+double Parser::toRadians(double angle) { return angle * M_PIf / 180.0F; }
+double Parser::fromRadians(double angle) { return angle * 180 / M_PIf; }
 
 bool Parser::isClosingPren()
 {
@@ -69,10 +70,7 @@ bool Parser::isClosingPren()
 
 bool Parser::isFunction(TokenType tt) const
 {
-	if (tt == TokenType::SIN || tt == TokenType::COS || tt == TokenType::TAN ||
-	    tt == TokenType::ASIN || tt == TokenType::ACOS || tt == TokenType::ATAN ||
-	    tt == TokenType::SQUREROOT || tt == TokenType::CUBEROOT)
-		return true;
+	if (tt == TokenType::FUNCTION) return true;
 	return false;
 }
 
@@ -219,30 +217,30 @@ std::optional<Value> Parser::postfix()
 	return factNum;
 }
 
-std::optional<Value> Parser::function(TokenType tt, double x)
+std::optional<Value> Parser::function(std::string tt, double x)
 {
-	if (tt == TokenType::SIN)
-		return Value{toDegrees(std::sin(x)), true};
+	if (tt == "sin")
+		return Value{std::sin(toRadians(x)), true};
 
-	else if (tt == TokenType::COS)
-		return Value{toDegrees(std::cos(x)), true};
+	else if (tt == "cos")
+		return Value{std::cos(toRadians(x)), true};
 
-	else if (tt == TokenType::TAN)
-		return Value{toDegrees(std::tan(x)), true};
+	else if (tt == "tan")
+		return Value{std::tan(toRadians(x)), true};
 
-	else if (tt == TokenType::ASIN)
-		return Value{toDegrees(std::asin(x)), true};
+	else if (tt == "asin")
+		return Value{fromRadians(std::asin(x)), true};
 
-	else if (tt == TokenType::ACOS)
-		return Value{toDegrees(std::acos(x)), true};
+	else if (tt == "acos")
+		return Value{fromRadians(std::acos(x)), true};
 
-	else if (tt == TokenType::ATAN)
-		return Value{toDegrees(std::atan(x)), true};
+	else if (tt == "atan")
+		return Value{fromRadians(std::atan(x)), true};
 
-	else if (tt == TokenType::SQUREROOT)
+	else if (tt == "sqrt")
 		return Value{std::sqrt(x), true};
 
-	else if (tt == TokenType::CUBEROOT)
+	else if (tt == "cbrt")
 		return Value{std::cbrt(x), true};
 
 	else
@@ -280,7 +278,8 @@ std::optional<Value> Parser::factor()
 		if (!isClosingPren()) return std::nullopt;
 		advance(); // consume )
 
-		number = function(t->type, n->number);
+		if (!n) return std::nullopt;
+		number = function(t->fname, n->number);
 	}
 	else
 		return std::nullopt;

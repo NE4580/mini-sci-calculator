@@ -1,6 +1,7 @@
 // Token.hpp
 #pragma once
 #include <cstddef>
+#include <string>
 
 // type safe enum
 enum class TokenType
@@ -12,14 +13,7 @@ enum class TokenType
 	DIV,
 	PWR,
 	FACTORIAL,
-	SIN,
-	COS,
-	TAN,
-	ASIN,
-	ACOS,
-	ATAN,
-	SQUREROOT,
-	CUBEROOT,
+	FUNCTION,
 	LPAREN,
 	RPAREN,
 	ERROR,
@@ -31,4 +25,5 @@ struct Token
 	bool isFloat;
 	size_t position;
 	double value;
+	std::string fname;
 };

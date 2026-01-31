@@ -36,10 +36,7 @@ bool Lexer::startsValue(TokenType tt) const
 
 bool Lexer::isFunction(TokenType tt) const
 {
-	if (tt == TokenType::SIN || tt == TokenType::COS || tt == TokenType::TAN ||
-	    tt == TokenType::ASIN || tt == TokenType::ACOS || tt == TokenType::ATAN ||
-	    tt == TokenType::SQUREROOT || tt == TokenType::CUBEROOT)
-		return true;
+	if (tt == TokenType::FUNCTION) return true;
 	return false;
 }
 
@@ -71,21 +68,21 @@ std::optional<Token> Lexer::readFunction()
 		c = std::tolower(c); // convert to lowercase to gaurd against character case
 
 	if (value == "sin")
-		return Token{TokenType::SIN, false, startI, 0.0F};
+		return Token{TokenType::FUNCTION, false, startI, 0.0F, value.c_str()};
 	else if (value == "cos")
-		return Token{TokenType::COS, false, startI, 0.0F};
+		return Token{TokenType::FUNCTION, false, startI, 0.0F, value.c_str()};
 	else if (value == "tan")
-		return Token{TokenType::TAN, false, startI, 0.0F};
+		return Token{TokenType::FUNCTION, false, startI, 0.0F, value.c_str()};
 	else if (value == "asin")
-		return Token{TokenType::ASIN, false, startI, 0.0F};
+		return Token{TokenType::FUNCTION, false, startI, 0.0F, value.c_str()};
 	else if (value == "acos")
-		return Token{TokenType::ACOS, false, startI, 0.0F};
+		return Token{TokenType::FUNCTION, false, startI, 0.0F, value.c_str()};
 	else if (value == "atan")
-		return Token{TokenType::ATAN, false, startI, 0.0F};
+		return Token{TokenType::FUNCTION, false, startI, 0.0F, value.c_str()};
 	else if (value == "sqrt")
-		return Token{TokenType::SQUREROOT, false, startI, 0.0F};
+		return Token{TokenType::FUNCTION, false, startI, 0.0F, value.c_str()};
 	else if (value == "cbrt")
-		return Token{TokenType::CUBEROOT, false, startI, 0.0F};
+		return Token{TokenType::FUNCTION, false, startI, 0.0F, value.c_str()};
 	else
 		return std::nullopt;
 }
@@ -247,9 +244,7 @@ void Lexer::showTokens() const
 			          << ") | isRN: " << token.isFloat << " "
 			          << " | INDEX (" << token.position << ") ]" << std::endl;
 
-		else if (token.type == TokenType::SIN || token.type == TokenType::COS ||
-		         token.type == TokenType::TAN || token.type == TokenType::ASIN ||
-		         token.type == TokenType::ACOS || token.type == TokenType::ATAN)
+		else if (token.type == TokenType::FUNCTION)
 			std::cout << "[TYPE: FUNCTION | "
 			          << "INDEX (" << token.position << ") ]" << std::endl;
 

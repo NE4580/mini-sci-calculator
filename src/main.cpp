@@ -4,7 +4,7 @@
 
 int main(int argc, char** argv)
 {
-	std::string input("(2)(2)");
+	std::string input("sin(90)");
 	Lexer lexer(input);
 	lexer.createTokens();
 	lexer.translateImplicitMul();

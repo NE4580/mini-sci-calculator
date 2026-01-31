@@ -2,8 +2,8 @@
 
 #pragma once
 #include "token.hpp"
-#include <cmath>
 #include <optional>
+#include <string>
 #include <vector>
 
 struct Value
@@ -30,12 +30,13 @@ private:
 	bool isOpeningPren();
 	bool isClosingPren();
 	bool isFunction(TokenType tt) const;
-	double toDegrees(double angle);
+	double toRadians(double angle);
+	double fromRadians(double angle);
 	std::optional<Value> expression();
 	std::optional<Value> term();
 	std::optional<Value> unary();
 	std::optional<Value> power();
 	std::optional<Value> postfix();
 	std::optional<Value> factor();
-	std::optional<Value> function(TokenType tt, double x);
+	std::optional<Value> function(std::string tt, double x);
 };
