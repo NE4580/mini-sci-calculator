@@ -68,21 +68,21 @@ std::optional<Token> Lexer::readFunction()
 		c = std::tolower(c); // convert to lowercase to gaurd against character case
 
 	if (value == "sin")
-		return Token{TokenType::FUNCTION, false, startI, 0.0F, value.c_str()};
+		return Token{TokenType::FUNCTION, false, startI, 0.0F, value};
 	else if (value == "cos")
-		return Token{TokenType::FUNCTION, false, startI, 0.0F, value.c_str()};
+		return Token{TokenType::FUNCTION, false, startI, 0.0F, value};
 	else if (value == "tan")
-		return Token{TokenType::FUNCTION, false, startI, 0.0F, value.c_str()};
+		return Token{TokenType::FUNCTION, false, startI, 0.0F, value};
 	else if (value == "asin")
-		return Token{TokenType::FUNCTION, false, startI, 0.0F, value.c_str()};
+		return Token{TokenType::FUNCTION, false, startI, 0.0F, value};
 	else if (value == "acos")
-		return Token{TokenType::FUNCTION, false, startI, 0.0F, value.c_str()};
+		return Token{TokenType::FUNCTION, false, startI, 0.0F, value};
 	else if (value == "atan")
-		return Token{TokenType::FUNCTION, false, startI, 0.0F, value.c_str()};
+		return Token{TokenType::FUNCTION, false, startI, 0.0F, value};
 	else if (value == "sqrt")
-		return Token{TokenType::FUNCTION, false, startI, 0.0F, value.c_str()};
+		return Token{TokenType::FUNCTION, false, startI, 0.0F, value};
 	else if (value == "cbrt")
-		return Token{TokenType::FUNCTION, false, startI, 0.0F, value.c_str()};
+		return Token{TokenType::FUNCTION, false, startI, 0.0F, value};
 	else
 		return std::nullopt;
 }
