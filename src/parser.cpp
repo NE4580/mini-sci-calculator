@@ -2,7 +2,12 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <functional>
 #include <optional>
+#include <string>
+#include <unordered_map>
+
+using std::function;
 
 Parser::Parser(const std::vector<Token>& t) : tokens(t) { tokenIndex = 0; }
 
@@ -219,32 +224,24 @@ std::optional<Value> Parser::postfix()
 
 std::optional<Value> Parser::function(std::string tt, double x)
 {
-	if (tt == "sin")
-		return Value{std::sin(toRadians(x)), true};
+	// alias to replace typing std::function<...>
+	using funcTypeAlias = std::function<double(double)>;
 
-	else if (tt == "cos")
-		return Value{std::cos(toRadians(x)), true};
+	static const std::unordered_map<std::string, funcTypeAlias> dispatcher = {
+	    {"sin", [this](double arg) { return sin(toRadians(arg)); }},
+	    {"cos", [this](double arg) { return cos(toRadians(arg)); }},
+	    {"tan", [this](double arg) { return tan(toRadians(arg)); }},
+	    {"asin", [this](double arg) { return fromRadians(asin(arg)); }},
+	    {"acos", [this](double arg) { return fromRadians(acos(arg)); }},
+	    {"atan", [this](double arg) { return fromRadians(atan(arg)); }},
+	    {"sqrt", [](double arg) { return sqrt(arg); }},
+	    {"cbrt", [](double arg) { return cbrt(arg); }},
+	};
 
-	else if (tt == "tan")
-		return Value{std::tan(toRadians(x)), true};
+	auto inTable = dispatcher.find(tt);
+	if (inTable == dispatcher.end()) return std::nullopt;
 
-	else if (tt == "asin")
-		return Value{fromRadians(std::asin(x)), true};
-
-	else if (tt == "acos")
-		return Value{fromRadians(std::acos(x)), true};
-
-	else if (tt == "atan")
-		return Value{fromRadians(std::atan(x)), true};
-
-	else if (tt == "sqrt")
-		return Value{std::sqrt(x), true};
-
-	else if (tt == "cbrt")
-		return Value{std::cbrt(x), true};
-
-	else
-		return std::nullopt;
+	return Value{inTable->second(x), true};
 }
 
 std::optional<Value> Parser::factor()
