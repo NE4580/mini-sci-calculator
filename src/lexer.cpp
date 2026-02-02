@@ -29,20 +29,20 @@ bool Lexer::endsvalue(TokenType tt) const
 
 bool Lexer::startsValue(TokenType tt) const
 {
-	if (tt == TokenType::NUMBER || tt == TokenType::LPAREN || isFunction(tt))
+	if (tt == TokenType::NUMBER || tt == TokenType::LPAREN || isIdentifier(tt))
 		return true;
 	return false;
 }
 
-bool Lexer::isFunction(TokenType tt) const
+bool Lexer::isIdentifier(TokenType tt) const
 {
-	if (tt == TokenType::FUNCTION) return true;
+	if (tt == TokenType::IDENTIFIER) return true;
 	return false;
 }
 
 std::vector<Token>& Lexer::getTokens() { return tokens; }
 
-std::optional<Token> Lexer::readFunction()
+std::optional<Token> Lexer::readIdentifier()
 {
 	size_t next   = (position + 1 < input.size()) ? position + 1 : 0;
 	size_t startI = position, insertIndex = 0;
@@ -67,24 +67,7 @@ std::optional<Token> Lexer::readFunction()
 	for (char& c : value)
 		c = std::tolower(c); // convert to lowercase to gaurd against character case
 
-	if (value == "sin")
-		return Token{TokenType::FUNCTION, false, startI, 0.0F, value};
-	else if (value == "cos")
-		return Token{TokenType::FUNCTION, false, startI, 0.0F, value};
-	else if (value == "tan")
-		return Token{TokenType::FUNCTION, false, startI, 0.0F, value};
-	else if (value == "asin")
-		return Token{TokenType::FUNCTION, false, startI, 0.0F, value};
-	else if (value == "acos")
-		return Token{TokenType::FUNCTION, false, startI, 0.0F, value};
-	else if (value == "atan")
-		return Token{TokenType::FUNCTION, false, startI, 0.0F, value};
-	else if (value == "sqrt")
-		return Token{TokenType::FUNCTION, false, startI, 0.0F, value};
-	else if (value == "cbrt")
-		return Token{TokenType::FUNCTION, false, startI, 0.0F, value};
-	else
-		return std::nullopt;
+	return Token{TokenType::IDENTIFIER, false, startI, 0.0F, value};
 }
 
 std::optional<Token> Lexer::readNumber()
@@ -192,7 +175,7 @@ bool Lexer::createTokens()
 			token = readNumber();
 
 		else if (std::isalpha(input[position]))
-			token = readFunction();
+			token = readIdentifier();
 
 		else
 			token = readSymbol();
@@ -244,8 +227,8 @@ void Lexer::showTokens() const
 			          << ") | isRN: " << token.isFloat << " "
 			          << " | INDEX (" << token.position << ") ]" << std::endl;
 
-		else if (token.type == TokenType::FUNCTION)
-			std::cout << "[TYPE: FUNCTION | "
+		else if (token.type == TokenType::IDENTIFIER)
+			std::cout << "[TYPE: IDENTIFIER (" << token.fname << ") | "
 			          << "INDEX (" << token.position << ") ]" << std::endl;
 
 		else

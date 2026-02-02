@@ -13,7 +13,7 @@ enum class TokenType
 	DIV,
 	PWR,
 	FACTORIAL,
-	FUNCTION,
+	IDENTIFIER,
 	LPAREN,
 	RPAREN,
 	ERROR,

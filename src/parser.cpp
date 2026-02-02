@@ -75,7 +75,7 @@ bool Parser::isClosingPren()
 
 bool Parser::isFunction(TokenType tt) const
 {
-	if (tt == TokenType::FUNCTION) return true;
+	if (tt == TokenType::IDENTIFIER) return true;
 	return false;
 }
 
@@ -104,8 +104,7 @@ std::optional<Value> Parser::expression()
 
 		rightOprand = unary();
 
-		if (!rightOprand) // break out if no oprand
-			break;
+		if (!rightOprand) return std::nullopt;
 
 		if (op == TokenType::PLUS)
 			leftOprand->number = leftOprand->number + rightOprand->number;
@@ -209,7 +208,10 @@ std::optional<Value> Parser::postfix()
 	while (currentToken() && currentToken()->type == TokenType::FACTORIAL)
 	{
 		advance();
-		if (factNum->number < 0.0F || factNum->isFloat) return std::nullopt;
+		// apply mathematical check to allow integers of value X.0
+		if (factNum->number < 0.0F ||
+		    std::floor(factNum->number) != factNum->number)
+			return std::nullopt;
 
 		double f = factorial(factNum->number);
 
@@ -266,17 +268,19 @@ std::optional<Value> Parser::factor()
 	}
 	else if (isFunction(currentToken()->type))
 	{
-		auto t = currentToken();
+		auto name = currentToken()->fname;
 		advance(); // consume function name
 		if (!isOpeningPren()) return std::nullopt;
 		advance(); // consume (
 
-		auto n = expression();
-		if (!isClosingPren()) return std::nullopt;
+		auto expResult = expression();
+
+		// fail if nullopt or currentToken not ) after call to expression
+		if (!expResult || !isClosingPren()) return std::nullopt;
 		advance(); // consume )
 
-		if (!n) return std::nullopt;
-		number = function(t->fname, n->number);
+		number = function(name, expResult->number);
+		if (!number) return std::nullopt;
 	}
 	else
 		return std::nullopt;
