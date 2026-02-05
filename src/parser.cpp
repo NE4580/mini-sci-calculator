@@ -1,4 +1,4 @@
-#include "../include/parser.hpp"
+#include "parser.hpp"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>

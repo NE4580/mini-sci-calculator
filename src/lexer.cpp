@@ -1,5 +1,5 @@
 // lexer
-#include "../include/lexer.hpp"
+#include "lexer.hpp"
 #include <cctype>
 #include <cstddef>
 #include <optional>

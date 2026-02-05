@@ -1,5 +1,5 @@
-#include "../include/lexer.hpp"
-#include "../include/parser.hpp"
+#include "lexer.hpp"
+#include "parser.hpp"
 #include <iostream>
 
 int main(int argc, char** argv)
