@@ -4,10 +4,12 @@
 .exe
 
 # ===== Build artifacts (CMake) =====
+.cache/
 build/
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
+compile_commands.json
 Makefile
 
 # ===== Object files =====
