@@ -268,16 +268,24 @@ std::optional<Value> Parser::factor()
 	}
 	else if (isFunction(currentToken()->type))
 	{
+		std::optional<Value> expResult;
+
 		auto name = currentToken()->fname;
 		advance(); // consume function name
-		if (!isOpeningPren()) return std::nullopt;
-		advance(); // consume (
 
-		auto expResult = expression();
+		if (isOpeningPren())
+		{
+			advance(); // consume (
 
-		// fail if nullopt or currentToken not ) after call to expression
-		if (!expResult || !isClosingPren()) return std::nullopt;
-		advance(); // consume )
+			expResult = expression();
+			if (!expResult || !isClosingPren()) return std::nullopt;
+			advance(); // consume )
+		}
+		else
+		{
+			expResult = unary();
+			if (!expResult) return std::nullopt;
+		}
 
 		number = function(name, expResult->number);
 		if (!number) return std::nullopt;

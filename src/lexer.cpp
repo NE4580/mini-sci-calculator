@@ -23,7 +23,9 @@ bool Lexer::isSymbol() const
 
 bool Lexer::endsvalue(TokenType tt) const
 {
-	if (tt == TokenType::NUMBER || tt == TokenType::RPAREN) return true;
+	if (tt == TokenType::NUMBER || tt == TokenType::FACTORIAL ||
+	    tt == TokenType::RPAREN)
+		return true;
 	return false;
 }
 
