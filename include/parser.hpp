@@ -2,6 +2,7 @@
 
 #pragma once
 #include "token.hpp"
+#include <functional>
 #include <optional>
 #include <string>
 #include <vector>
@@ -10,6 +11,12 @@ struct Value
 {
 	double number;
 	bool isFloat;
+};
+
+struct FunctionMetaData
+{
+	int arity;
+	std::function<double(const std::vector<double>&)> fn;
 };
 
 class Parser
@@ -29,14 +36,22 @@ private:
 	bool match(TokenType tt);
 	bool isOpeningPren();
 	bool isClosingPren();
-	bool isFunction(TokenType tt) const;
+	// commented becuse they are implicitly handed by function(...), which handles
+	// arity and lookup bool isFunction(TokenType tt) const; bool
+	// isUnaryFunction(const std::string name); bool isMultiArgFunction(const
+	// std::string name);
 	double toRadians(double angle);
 	double fromRadians(double angle);
 	std::optional<Value> expression();
 	std::optional<Value> term();
+	std::optional<Value> primary();
 	std::optional<Value> unary();
 	std::optional<Value> power();
 	std::optional<Value> postfix();
 	std::optional<Value> factor();
-	std::optional<Value> function(std::string tt, double x);
+	std::optional<Value> getConstant(const std::string name) const;
+	std::optional<Value> function(std::string tt, std::vector<double>& args);
+	std::optional<Value> parseFuntionCall(const std::string& name);
+	std::optional<std::vector<double>> parseArguments();
+	std::optional<Value> parseFuntionOrConstant();
 };

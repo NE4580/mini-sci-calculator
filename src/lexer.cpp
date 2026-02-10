@@ -2,9 +2,9 @@
 #include "lexer.hpp"
 #include <cctype>
 #include <cstddef>
+#include <iostream>
 #include <optional>
 #include <ostream>
-#include <string>
 
 Lexer::Lexer(const std::string& text) : input(text) { position = 0; }
 
@@ -15,7 +15,8 @@ bool Lexer::isSymbol() const
 		if ((input[position] == '+') || (input[position] == '-') ||
 		    (input[position] == '/') || (input[position] == '*') ||
 		    (input[position] == '(') || (input[position] == ')') ||
-		    input[position] == '!' || input[position] == '^')
+		    input[position] == '!' || input[position] == '^' ||
+		    input[position] == ',')
 			return true;
 	}
 	return false;
@@ -24,7 +25,7 @@ bool Lexer::isSymbol() const
 bool Lexer::endsvalue(TokenType tt) const
 {
 	if (tt == TokenType::NUMBER || tt == TokenType::FACTORIAL ||
-	    tt == TokenType::RPAREN)
+	    isIdentifier(tt) || tt == TokenType::RPAREN)
 		return true;
 	return false;
 }
@@ -153,6 +154,9 @@ Token Lexer::tokenizeSymbol(const char val, size_t beg)
 
 	else if (val == ')')
 		tokenType = TokenType::RPAREN;
+
+	else if (val == ',')
+		tokenType = TokenType::COMMA;
 
 	else
 		tokenType = TokenType::ERROR;

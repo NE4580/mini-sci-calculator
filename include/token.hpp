@@ -16,6 +16,7 @@ enum class TokenType
 	IDENTIFIER,
 	LPAREN,
 	RPAREN,
+	COMMA,
 	ERROR,
 };
 

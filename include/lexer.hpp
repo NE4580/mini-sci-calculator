@@ -3,8 +3,8 @@
 #pragma once
 #include "token.hpp"
 #include <cstddef>
-#include <iostream>
 #include <optional>
+#include <string>
 #include <vector>
 
 class Lexer
