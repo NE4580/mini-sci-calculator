@@ -2,7 +2,6 @@
 
 #pragma once
 #include "token.hpp"
-#include <functional>
 #include <optional>
 #include <string>
 #include <vector>
@@ -11,12 +10,6 @@ struct Value
 {
 	double number;
 	bool isFloat;
-};
-
-struct FunctionMetaData
-{
-	int arity;
-	std::function<double(const std::vector<double>&)> fn;
 };
 
 class Parser
@@ -36,10 +29,7 @@ private:
 	bool match(TokenType tt);
 	bool isOpeningPren();
 	bool isClosingPren();
-	// commented becuse they are implicitly handed by function(...), which handles
-	// arity and lookup bool isFunction(TokenType tt) const; bool
-	// isUnaryFunction(const std::string name); bool isMultiArgFunction(const
-	// std::string name);
+	bool isUnaryFunction(const std::string name);
 	double toRadians(double angle);
 	double fromRadians(double angle);
 	std::optional<Value> expression();

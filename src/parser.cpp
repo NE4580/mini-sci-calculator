@@ -1,4 +1,5 @@
 #include "parser.hpp"
+#include "tables.hpp"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -71,24 +72,6 @@ bool Parser::isClosingPren()
 	if (!(currentToken()->type == TokenType::RPAREN)) return false;
 	return true;
 }
-
-// bool Parser::isFunction(TokenType tt) const
-// {
-// 	if (tt == TokenType::IDENTIFIER) return true;
-// 	return false;
-// }
-
-// bool Parser::isUnaryFunction(const std::string name)
-// {
-// 	return (name == "sqrt") || (name == "cbrt") || (name == "sin") ||
-// 	       (name == "cos") || (name == "tan") || (name == "asin") ||
-// 	       (name == "acos") || (name == "atan");
-// }
-
-// bool Parser::isMultiArgFunction(const std::string name)
-// {
-// 	return (name == "pow") || (name == "max");
-// }
 
 bool Parser::match(TokenType tt)
 {
@@ -237,12 +220,9 @@ std::optional<Value> Parser::postfix()
 
 std::optional<Value> Parser::getConstant(const std::string name) const
 {
-	static const std::unordered_map<std::string, double> table = {
-	    {"pi", M_PIf}, {"e", M_Ef}, {"tau", 2 * M_PIf}};
+	auto it = CONSTANTS_TABLE.find(name);
 
-	auto it = table.find(name);
-
-	if (it == table.end()) return std::nullopt;
+	if (it == CONSTANTS_TABLE.end()) return std::nullopt;
 
 	return Value{it->second, true};
 }
@@ -268,20 +248,8 @@ std::optional<Value> Parser::function(std::string name,
 	//  if (inTable == dispatcher.end()) return std::nullopt;
 	//
 	//  return Value{inTable->second(args), true};
-	static const std::unordered_map<std::string, FunctionMetaData> dispatcher = {
-	    {"sin", {1, [this](auto& args) { return sin(toRadians(args[0])); }}},
-	    {"cos", {1, [this](auto& args) { return sin(toRadians(args[0])); }}},
-	    {"tan", {1, [this](auto& args) { return sin(toRadians(args[0])); }}},
-	    {"asin", {1, [this](auto& args) { return fromRadians(sin(args[0])); }}},
-	    {"acos", {1, [this](auto& args) { return fromRadians(sin(args[0])); }}},
-	    {"atan", {1, [this](auto& args) { return fromRadians(sin(args[0])); }}},
-	    {"sqrt", {1, [](auto& args) { return sqrt(args[0]); }}},
-	    {"cbrt", {1, [](auto& args) { return sqrt(args[0]); }}},
-	    {"pow", {2, [](auto& args) { return pow(args[0], args[1]); }}},
-	};
-
-	auto it = dispatcher.find(name);
-	if (it == dispatcher.end()) return std::nullopt;
+	auto it = FUNCTIONS_TABLE.find(name);
+	if (it == FUNCTIONS_TABLE.end()) return std::nullopt;
 
 	// arity check
 	int expectedArgc = it->second.arity;
@@ -340,9 +308,8 @@ std::optional<Value> Parser::parseFuntionOrConstant()
 
 	if (isOpeningPren()) return parseFuntionCall(name); // call function call
 
-	// if (isUnaryFunction(name) && !isMultiArgFunction(name)) // unary function
-
-	{ // check is commented because arity checking happens in function(...)
+	if (isUnaryFunction(name)) // unary function guard
+	{
 		auto arg = unary();
 		if (!arg) return std::nullopt;
 
@@ -350,6 +317,8 @@ std::optional<Value> Parser::parseFuntionOrConstant()
 		temp.push_back(arg->number);
 		if (arg) return function(name, temp);
 	}
+
+	std::cerr << "ERROR: unknown identifier \'" << name << "\'\n";
 	return std::nullopt; // unknown identifier
 }
 
