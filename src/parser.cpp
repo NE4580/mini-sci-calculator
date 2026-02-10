@@ -295,8 +295,39 @@ std::optional<Value> Parser::parseFuntionCall(const std::string& name)
 	if (!args.has_value()) return std::nullopt;
 	if (!isClosingPren()) return std::nullopt;
 
+	if (!isClosingPren()) return std::nullopt;
 	advance(); // consume )
 	return function(name, args.value());
+}
+
+std::optional<Value> Parser::resolveIdentifier(const std::string& name)
+{
+	if (auto constant = getConstant(name)) return constant; // get constants
+
+	auto it = FUNCTIONS_TABLE.find(name); // lookup function
+
+	// check if unary using arity of function
+	if (it != FUNCTIONS_TABLE.end()) // unary function guard
+	{
+		short arity = it->second.arity;
+
+		if (arity == 1)
+		{
+			std::vector<double> functionArgs;
+
+			auto arg = unary();
+			if (!arg) return std::nullopt;
+
+			functionArgs.push_back(arg->number);
+			if (arg) return function(name, functionArgs);
+		}
+
+		std::cerr << "ERROR: function \'" << name << "\' requires parentheses\n";
+		return std::nullopt;
+	}
+
+	std::cerr << "ERROR: unknown identifier \'" << name << "\'\n";
+	return std::nullopt; // unknown identifier
 }
 
 std::optional<Value> Parser::parseFuntionOrConstant()
@@ -304,22 +335,9 @@ std::optional<Value> Parser::parseFuntionOrConstant()
 	std::string name = currentToken()->fname;
 	advance(); // consume identifier
 
-	if (auto constant = getConstant(name)) return constant; // get constants
-
 	if (isOpeningPren()) return parseFuntionCall(name); // call function call
 
-	if (isUnaryFunction(name)) // unary function guard
-	{
-		auto arg = unary();
-		if (!arg) return std::nullopt;
-
-		std::vector<double> temp;
-		temp.push_back(arg->number);
-		if (arg) return function(name, temp);
-	}
-
-	std::cerr << "ERROR: unknown identifier \'" << name << "\'\n";
-	return std::nullopt; // unknown identifier
+	return resolveIdentifier(name);
 }
 
 std::optional<Value> Parser::primary()

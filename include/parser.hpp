@@ -29,7 +29,6 @@ private:
 	bool match(TokenType tt);
 	bool isOpeningPren();
 	bool isClosingPren();
-	bool isUnaryFunction(const std::string name);
 	double toRadians(double angle);
 	double fromRadians(double angle);
 	std::optional<Value> expression();
@@ -41,6 +40,7 @@ private:
 	std::optional<Value> factor();
 	std::optional<Value> getConstant(const std::string name) const;
 	std::optional<Value> function(std::string tt, std::vector<double>& args);
+	std::optional<Value> resolveIdentifier(const std::string& name);
 	std::optional<Value> parseFuntionCall(const std::string& name);
 	std::optional<std::vector<double>> parseArguments();
 	std::optional<Value> parseFuntionOrConstant();
