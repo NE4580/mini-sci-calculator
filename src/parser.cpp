@@ -63,9 +63,6 @@ bool Parser::isOpeningPren()
 	return true;
 }
 
-double Parser::toRadians(double angle) { return angle * M_PIf / 180.0F; }
-double Parser::fromRadians(double angle) { return angle * 180 / M_PIf; }
-
 bool Parser::isClosingPren()
 {
 	if (!currentToken()) return false;
@@ -139,7 +136,7 @@ std::optional<Value> Parser::term()
 		else if (op == TokenType::MOD)
 		{
 			leftOprand->number = std::fmod(leftOprand->number, rightOprand->number);
-			std::abs(leftOprand->number);
+			leftOprand->number = std::abs(leftOprand->number);
 		}
 		leftOprand->isFloat = leftOprand->isFloat || rightOprand->isFloat;
 	}
@@ -268,7 +265,16 @@ std::optional<Value> Parser::function(std::string name,
 		return std::nullopt;
 	}
 
-	return Value{it->second.fn(args), true};
+	// input guard exception handling
+	try
+	{
+		return Value{it->second.fn(args), true};
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << "ERROR: " << e.what() << std::endl;
+		return std::nullopt;
+	}
 }
 
 std::optional<Value> Parser::factor() { return primary(); }

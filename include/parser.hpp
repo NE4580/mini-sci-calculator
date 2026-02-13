@@ -29,8 +29,6 @@ private:
 	bool match(TokenType tt);
 	bool isOpeningPren();
 	bool isClosingPren();
-	double toRadians(double angle);
-	double fromRadians(double angle);
 	std::optional<Value> expression();
 	std::optional<Value> term();
 	std::optional<Value> primary();
