@@ -1,13 +1,13 @@
 #include "parser.hpp"
+#include "tables.hpp"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <functional>
+#include <iostream>
 #include <optional>
 #include <string>
 #include <unordered_map>
-
-using std::function;
 
 Parser::Parser(const std::vector<Token>& t) : tokens(t) { tokenIndex = 0; }
 
@@ -63,20 +63,11 @@ bool Parser::isOpeningPren()
 	return true;
 }
 
-double Parser::toRadians(double angle) { return angle * M_PIf / 180.0F; }
-double Parser::fromRadians(double angle) { return angle * 180 / M_PIf; }
-
 bool Parser::isClosingPren()
 {
 	if (!currentToken()) return false;
 	if (!(currentToken()->type == TokenType::RPAREN)) return false;
 	return true;
-}
-
-bool Parser::isFunction(TokenType tt) const
-{
-	if (tt == TokenType::IDENTIFIER) return true;
-	return false;
 }
 
 bool Parser::match(TokenType tt)
@@ -102,7 +93,7 @@ std::optional<Value> Parser::expression()
 		TokenType op = currentToken()->type; // Coleect token type directly
 		advance();                           // consume operator
 
-		rightOprand = unary();
+		rightOprand = term();
 
 		if (!rightOprand) return std::nullopt;
 
@@ -125,8 +116,8 @@ std::optional<Value> Parser::term()
 	if (!leftOprand) return std::nullopt;
 
 	while (
-	    match(TokenType::MUL) ||
-	    match(TokenType::DIV)) // if operator is a match, move past the operator
+	    match(TokenType::MUL) || match(TokenType::DIV) ||
+	    match(TokenType::MOD)) // if operator is a match, move past the operator
 	{
 		TokenType op = currentToken()->type; // Coleect token type directly
 		advance();                           // consume operator
@@ -142,6 +133,11 @@ std::optional<Value> Parser::term()
 		else if (op == TokenType::DIV)
 			leftOprand->number = leftOprand->number / rightOprand->number;
 
+		else if (op == TokenType::MOD)
+		{
+			leftOprand->number = std::fmod(leftOprand->number, rightOprand->number);
+			leftOprand->number = std::abs(leftOprand->number);
+		}
 		leftOprand->isFloat = leftOprand->isFloat || rightOprand->isFloat;
 	}
 	return leftOprand;
@@ -224,66 +220,161 @@ std::optional<Value> Parser::postfix()
 	return factNum;
 }
 
-std::optional<Value> Parser::function(std::string tt, double x)
+std::optional<Value> Parser::getConstant(const std::string name) const
 {
-	// alias to replace typing std::function<...>
-	using funcTypeAlias = std::function<double(double)>;
+	auto it = CONSTANTS_TABLE.find(name);
 
-	static const std::unordered_map<std::string, funcTypeAlias> dispatcher = {
-	    {"sin", [this](double arg) { return sin(toRadians(arg)); }},
-	    {"cos", [this](double arg) { return cos(toRadians(arg)); }},
-	    {"tan", [this](double arg) { return tan(toRadians(arg)); }},
-	    {"asin", [this](double arg) { return fromRadians(asin(arg)); }},
-	    {"acos", [this](double arg) { return fromRadians(acos(arg)); }},
-	    {"atan", [this](double arg) { return fromRadians(atan(arg)); }},
-	    {"sqrt", [](double arg) { return sqrt(arg); }},
-	    {"cbrt", [](double arg) { return cbrt(arg); }},
-	};
+	if (it == CONSTANTS_TABLE.end()) return std::nullopt;
 
-	auto inTable = dispatcher.find(tt);
-	if (inTable == dispatcher.end()) return std::nullopt;
-
-	return Value{inTable->second(x), true};
+	return Value{it->second, true};
 }
 
-std::optional<Value> Parser::factor()
+std::optional<Value> Parser::function(std::string name,
+                                      std::vector<double>& args)
 {
-	std::optional<Value> number;
+	// ====================intentionally left in========================
+	//  static const std::unordered_map<std::string, FunctionMetaData> dispatcher
+	//  =
+	//  {
+	//      {"sin", [this](auto& args) { return sin(toRadians(args[0])); }},
+	//      {"cos", [this](auto& args) { return cos(toRadians(args[0])); }},
+	//      {"tan", [this](auto& args) { return tan(toRadians(args[0])); }},
+	//      {"asin", [this](auto& args) { return fromRadians(asin(args[0])); }},
+	//      {"acos", [this](auto& args) { return fromRadians(acos(args[0])); }},
+	//      {"atan", [this](auto& args) { return fromRadians(atan(args[0])); }},
+	//      {"sqrt", [](auto& args) { return sqrt(args[0]); }},
+	//      {"cbrt", [](auto& args) { return cbrt(args[0]); }},
+	//  };
+	//
+	//  auto inTable = dispatcher.find(name);
+	//  if (inTable == dispatcher.end()) return std::nullopt;
+	//
+	//  return Value{inTable->second(args), true};
+	auto it = FUNCTIONS_TABLE.find(name);
+	if (it == FUNCTIONS_TABLE.end()) return std::nullopt;
 
+	// arity check
+	int expectedArgc = it->second.arity;
+	int given        = (int)args.size();
+
+	if (expectedArgc != given)
+	{
+		std::cerr << "ERROR: Unmatched argument count for \'" << name
+		          << "\' expected " << expectedArgc << " arguments; got " << given
+		          << "\n";
+		return std::nullopt;
+	}
+
+	// input guard exception handling
+	try
+	{
+		return Value{it->second.fn(args), true};
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << "ERROR: " << e.what() << std::endl;
+		return std::nullopt;
+	}
+}
+
+std::optional<Value> Parser::factor() { return primary(); }
+
+std::optional<std::vector<double>> Parser::parseArguments()
+{
+	std::vector<double> argVect;
+
+	auto first = expression();
+	if (!first) return std::nullopt;
+	argVect.push_back(first->number);
+
+	while (currentToken() && currentToken()->type == TokenType::COMMA)
+	{
+		advance(); // consume ,
+		auto next = expression();
+		if (!next) return std::nullopt;
+		argVect.push_back(next->number);
+	}
+
+	return argVect;
+}
+
+std::optional<Value> Parser::parseFuntionCall(const std::string& name)
+{
+	if (!isOpeningPren()) return std::nullopt;
+	advance(); // consume (
+	auto args = parseArguments();
+	if (!args.has_value()) return std::nullopt;
+	if (!isClosingPren()) return std::nullopt;
+
+	if (!isClosingPren()) return std::nullopt;
+	advance(); // consume )
+	return function(name, args.value());
+}
+
+std::optional<Value> Parser::resolveIdentifier(const std::string& name)
+{
+	if (auto constant = getConstant(name)) return constant; // get constants
+
+	auto it = FUNCTIONS_TABLE.find(name); // lookup function
+
+	// check if unary using arity of function
+	if (it != FUNCTIONS_TABLE.end()) // unary function guard
+	{
+		short arity = it->second.arity;
+
+		if (arity == 1)
+		{
+			std::vector<double> functionArgs;
+
+			auto arg = unary();
+			if (!arg) return std::nullopt;
+
+			functionArgs.push_back(arg->number);
+			if (arg) return function(name, functionArgs);
+		}
+
+		std::cerr << "ERROR: function \'" << name << "\' requires parentheses\n";
+		return std::nullopt;
+	}
+
+	std::cerr << "ERROR: unknown identifier \'" << name << "\'\n";
+	return std::nullopt; // unknown identifier
+}
+
+std::optional<Value> Parser::parseFuntionOrConstant()
+{
+	std::string name = currentToken()->fname;
+	advance(); // consume identifier
+
+	if (isOpeningPren()) return parseFuntionCall(name); // call function call
+
+	return resolveIdentifier(name);
+}
+
+std::optional<Value> Parser::primary()
+{
 	if (!currentToken()) return std::nullopt;
 
 	if (currentToken()->type == TokenType::NUMBER)
 	{
-		number = Value{currentToken()->value, currentToken()->isFloat};
+		Value v{currentToken()->value, currentToken()->isFloat};
 		advance();
+		return v;
 	}
-	else if (currentToken()->type == TokenType::LPAREN)
+
+	if (currentToken()->type == TokenType::LPAREN)
 	{
-		advance();
-		number = expression();
-		if (!isClosingPren()) // expecting ) at the end of call to
-		                      // expression()
-			return std::nullopt;
-		advance(); // consume )
-	}
-	else if (isFunction(currentToken()->type))
-	{
-		auto name = currentToken()->fname;
-		advance(); // consume function name
-		if (!isOpeningPren()) return std::nullopt;
 		advance(); // consume (
-
-		auto expResult = expression();
-
-		// fail if nullopt or currentToken not ) after call to expression
-		if (!expResult || !isClosingPren()) return std::nullopt;
-		advance(); // consume )
-
-		number = function(name, expResult->number);
-		if (!number) return std::nullopt;
+		auto expValue = expression();
+		if (!expValue || !isClosingPren()) return std::nullopt;
+		advance();
+		return expValue;
 	}
-	else
-		return std::nullopt;
 
-	return number;
+	if (currentToken()->type == TokenType::IDENTIFIER)
+	{
+		return parseFuntionOrConstant();
+	}
+
+	return std::nullopt;
 }

@@ -14,9 +14,12 @@ enum class TokenType
 	PWR,
 	FACTORIAL,
 	IDENTIFIER,
+	MOD,
 	LPAREN,
 	RPAREN,
+	COMMA,
 	ERROR,
+	MODEXEP,
 };
 
 struct Token

@@ -2,9 +2,11 @@
 #include "lexer.hpp"
 #include <cctype>
 #include <cstddef>
+#include <iostream>
 #include <optional>
 #include <ostream>
-#include <string>
+
+static bool isModulo(std::string str) { return ("mod" == str) ? true : false; }
 
 Lexer::Lexer(const std::string& text) : input(text) { position = 0; }
 
@@ -15,7 +17,8 @@ bool Lexer::isSymbol() const
 		if ((input[position] == '+') || (input[position] == '-') ||
 		    (input[position] == '/') || (input[position] == '*') ||
 		    (input[position] == '(') || (input[position] == ')') ||
-		    input[position] == '!' || input[position] == '^')
+		    (input[position] == '!') || (input[position] == '^') ||
+		    (input[position] == ',') || (input[position] == '%'))
 			return true;
 	}
 	return false;
@@ -23,7 +26,9 @@ bool Lexer::isSymbol() const
 
 bool Lexer::endsvalue(TokenType tt) const
 {
-	if (tt == TokenType::NUMBER || tt == TokenType::RPAREN) return true;
+	if (tt == TokenType::NUMBER || tt == TokenType::FACTORIAL ||
+	    tt == TokenType::RPAREN)
+		return true;
 	return false;
 }
 
@@ -67,7 +72,26 @@ std::optional<Token> Lexer::readIdentifier()
 	for (char& c : value)
 		c = std::tolower(c); // convert to lowercase to gaurd against character case
 
+	if (isModulo(value))
+	{ // step back
+		position -= value.size();
+		// send execption
+		return Token{TokenType::MODEXEP, false, startI, 0.0F, value};
+	}
+
 	return Token{TokenType::IDENTIFIER, false, startI, 0.0F, value};
+}
+
+std::optional<Token> Lexer::readMod()
+{
+	size_t startI      = position;
+	std::string subtxt = input.substr(position, 3); // extract mod substring
+	if (isModulo(subtxt))
+	{
+		position += subtxt.size();
+		return tokenizeSymbol('%', startI);
+	}
+	return std::nullopt;
 }
 
 std::optional<Token> Lexer::readNumber()
@@ -120,6 +144,7 @@ std::optional<Token> Lexer::readSymbol()
 		position += (position < input.size()) ? 1 : 0;
 		return tokenizeSymbol(value, startI);
 	}
+
 	else
 		return std::nullopt;
 }
@@ -152,6 +177,12 @@ Token Lexer::tokenizeSymbol(const char val, size_t beg)
 	else if (val == ')')
 		tokenType = TokenType::RPAREN;
 
+	else if (val == ',')
+		tokenType = TokenType::COMMA;
+
+	else if (val == '%')
+		tokenType = TokenType::MOD;
+
 	else
 		tokenType = TokenType::ERROR;
 
@@ -175,8 +206,11 @@ bool Lexer::createTokens()
 			token = readNumber();
 
 		else if (std::isalpha(input[position]))
+		{
 			token = readIdentifier();
-
+			if (token.has_value() && token->type == TokenType::MODEXEP)
+				token = readMod();
+		}
 		else
 			token = readSymbol();
 
@@ -194,6 +228,7 @@ bool Lexer::createTokens()
 			success = false;
 			break;
 		}
+
 		// otherwise push the token
 		tokens.push_back(*token);
 	}

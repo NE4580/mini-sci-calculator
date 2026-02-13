@@ -1,16 +1,12 @@
-#include "lexer.hpp"
-#include "parser.hpp"
-#include <iostream>
+#include "caclulator.hpp"
+#include "mathUtils.hpp"
 
 int main(int argc, char** argv)
 {
-	std::string input("sin(90)");
-	Lexer lexer(input);
-	lexer.createTokens();
-	lexer.translateImplicitMul();
-	Parser parser(lexer.getTokens());
 
-	std::cout << "ANS: " << parser.evalute() << std::endl;
-	// lexer.showTokens();
+	CURRENT_ANGLE_MODE = AngleMode::DEG;
+	Calculator calc;
+
+	calc.getInput();
 	return 0;
 }
