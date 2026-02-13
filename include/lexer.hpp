@@ -26,6 +26,7 @@ public:
 	std::optional<Token> readIdentifier();
 	std::optional<Token> readNumber();
 	std::optional<Token> readSymbol();
+	std::optional<Token> readMod();
 	Token tokenizeSymbol(const char val, size_t beg);
 	bool createTokens();
 	void translateImplicitMul(); // Inserts implicit multiplication on x(y) -> x*

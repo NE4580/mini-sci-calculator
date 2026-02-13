@@ -119,8 +119,8 @@ std::optional<Value> Parser::term()
 	if (!leftOprand) return std::nullopt;
 
 	while (
-	    match(TokenType::MUL) ||
-	    match(TokenType::DIV)) // if operator is a match, move past the operator
+	    match(TokenType::MUL) || match(TokenType::DIV) ||
+	    match(TokenType::MOD)) // if operator is a match, move past the operator
 	{
 		TokenType op = currentToken()->type; // Coleect token type directly
 		advance();                           // consume operator
@@ -136,6 +136,11 @@ std::optional<Value> Parser::term()
 		else if (op == TokenType::DIV)
 			leftOprand->number = leftOprand->number / rightOprand->number;
 
+		else if (op == TokenType::MOD)
+		{
+			leftOprand->number = std::fmod(leftOprand->number, rightOprand->number);
+			std::abs(leftOprand->number);
+		}
 		leftOprand->isFloat = leftOprand->isFloat || rightOprand->isFloat;
 	}
 	return leftOprand;
